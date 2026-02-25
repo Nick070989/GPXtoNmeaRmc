@@ -15,6 +15,7 @@ import (
 )
 
 const metrPerHourToKnots float64 = 1.94384449244061
+const defaultTimeIntervalSec int64 = 1
 
 func CalcCourse(pCurrent gpx.Point, pNext gpx.Point) float64 {
 	p1 := geocalc.NewPoint(
@@ -74,17 +75,18 @@ func sendPointsToPort(points []gpx.Point, port serial.Port) {
 		_, err := port.Write([]byte(rmcStr))
 		if err != nil {
 			fmt.Printf("Send message error: %v\n", err)
+		} else {
+			fmt.Println(rmcStr)
 		}
 		if i < len(points)-1 {
 			seconds := points[i+1].Time.Unix() - points[i].Time.Unix()
 			if seconds <= 0 {
-				seconds = 1
+				seconds = defaultTimeIntervalSec
 			}
 			waitPeriod := time.Duration(seconds) * time.Second
 			time.Sleep(waitPeriod)
 		}
 		rmcList = append(rmcList, rmcStr)
-		fmt.Println(rmcStr)
 	}
 }
 
@@ -121,7 +123,7 @@ func main() {
 	}
 	baudrate := flag.Int("b", 115200, "Baudrate")
 	flag.CommandLine.Parse(os.Args[3:])
-	fmt.Printf("Baudrate: %v", *baudrate)
+	fmt.Printf("Baudrate: %v\n", *baudrate)
 	mode := &serial.Mode{
 		BaudRate: *baudrate,
 		DataBits: 8,

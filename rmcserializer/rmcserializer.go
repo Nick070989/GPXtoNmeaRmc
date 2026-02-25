@@ -17,7 +17,7 @@ type RmcSerializer struct {
 func New(lat, long, course, speeed float64,
 	validity bool, time time.Time) *RmcSerializer {
 	return &RmcSerializer{latitude: lat, longitude: long,
-		time: time, course: course, speed: speeed}
+		time: time, validity: validity, course: course, speed: speeed}
 }
 
 func calculateChecksum(sentence string) string {
@@ -73,5 +73,5 @@ func (s *RmcSerializer) Serialize() string {
 
 	checksum := calculateChecksum(baseBody)
 
-	return fmt.Sprintf("$%s*%s", baseBody, checksum)
+	return fmt.Sprintf("$%s*%s\r\n", baseBody, checksum)
 }
