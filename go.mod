@@ -12,6 +12,7 @@ require (
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/dsyx/serialport-go v1.0.0
 	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
 	go.bug.st/serial v1.6.4 // indirect
 	golang.org/x/sys v0.19.0 // indirect

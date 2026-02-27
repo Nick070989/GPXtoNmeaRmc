@@ -6,6 +6,7 @@ import (
 	"gpxtormc/gpxreader"
 	"gpxtormc/rmcserializer"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/eiannone/keyboard"
@@ -90,6 +91,21 @@ func sendPointsToPort(points []gpx.Point, port serial.Port) {
 	}
 }
 
+// /add virtual ports tty0tty (/dev/tnt0, /dev/tnt1 ...)
+func addVirtualPorts() []string {
+	virtualPortName := "/dev/tnt"
+	var virtualPorts []string
+	count := 10
+	for i := 0; i < count; i++ {
+		path := virtualPortName + strconv.Itoa(i)
+		_, err := os.Open(path)
+		if err == nil {
+			virtualPorts = append(virtualPorts, path)
+		}
+	}
+	return virtualPorts
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Usage: <path to file.gpx> <path to serialPort> [-b baudrate value]")
@@ -110,6 +126,8 @@ func main() {
 		fmt.Println("ERROR!", err.Error())
 		os.Exit(1)
 	}
+	vPorts := addVirtualPorts()
+	ports = append(ports, vPorts...)
 	exists := false
 	for _, port := range ports {
 		if port == serialPortPath {
@@ -122,8 +140,10 @@ func main() {
 		os.Exit(1)
 	}
 	baudrate := flag.Int("b", 115200, "Baudrate")
+	repeat := flag.Bool("r", false, "Repeat track")
 	flag.CommandLine.Parse(os.Args[3:])
 	fmt.Printf("Baudrate: %v\n", *baudrate)
+	fmt.Printf("Repeat track: %v\n", *repeat)
 	mode := &serial.Mode{
 		BaudRate: *baudrate,
 		DataBits: 8,
@@ -138,6 +158,8 @@ func main() {
 	if port == nil {
 		fmt.Printf("Serial port was not opened: %v\n", err)
 		os.Exit(1)
+	} else {
+		fmt.Printf("Serial port %s was opened\n", serialPortPath)
 	}
 	defer port.Close()
 
@@ -168,6 +190,9 @@ func main() {
 			}
 		}
 	}()
-
 	sendPointsToPort(points, port)
+
+	for *repeat == true {
+		sendPointsToPort(points, port)
+	}
 }
